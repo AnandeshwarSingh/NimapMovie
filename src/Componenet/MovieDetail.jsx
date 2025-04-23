@@ -1,7 +1,9 @@
 import React, { useState , useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 function MovieDetail(props) 
 {
+    const { id } = useParams();
     const [movie , setMovie] = useState(null);
     const [load , setLoad] = useState(true);
     const [error , setError] = useState(null);
@@ -9,51 +11,38 @@ function MovieDetail(props)
 
     const Api_key = "c45a857c193f6302f2b5061c3b85e743";
       
-    useEffect(() => 
-        {
-        if (props.getMovie) 
-        {
-            const movie_id = props.getMovie.id;
-            const Api_url = `https://api.themoviedb.org/3/movie/${movie_id}?api_key=${Api_key}&language=en-US`;
-            const Cast_url = `https://api.themoviedb.org/3/movie/${movie_id}/credits?api_key=${Api_key}&language=en-US`;
-    
+    useEffect(() => {
+        const fetchMovie = async () => {
             setLoad(true);
-            Promise.all([
-                fetch(Api_url).then((response) => 
-                {
-                    if (!response.ok) 
-                    {
-                        throw new Error("Failed to fetch movie details");
-                    }
-                    return response.json();
-                }),
-                fetch(Cast_url).then((response) => 
-                {
-                    if (!response.ok) 
-                    {
-                        throw new Error("Failed to fetch cast details");
-                    }
-                    return response.json();
-                }),
-            ])
-            .then(([movieData, castData]) => 
-            {
+            const movieUrl = `https://api.themoviedb.org/3/movie/${id}?api_key=${Api_key}&language=en-US`;
+            const castUrl = `https://api.themoviedb.org/3/movie/${id}/credits?api_key=${Api_key}&language=en-US`;
+
+            try {
+                const [movieRes, castRes] = await Promise.all([
+                    fetch(movieUrl),
+                    fetch(castUrl),
+                ]);
+
+                if (!movieRes.ok || !castRes.ok) {
+                    throw new Error("Failed to fetch data.");
+                }
+
+                const movieData = await movieRes.json();
+                const castData = await castRes.json();
+
                 setMovie(movieData);
-                setCast(castData); 
-                setLoad(false); 
-            })
-            .catch((error) => 
-            {
-                setError(error.message);
-                setLoad(false); 
-            });
-        } 
-        else 
-        {
-            setLoad(false); 
-        }
-    }, [props.getMovie]);
+                setCast(castData);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoad(false);
+            }
+        };
+
+        fetchMovie();
+    }, [id]);
     
+
     if (load) return <h1>Loading...</h1>;
     if (error) return <h1>Error: {error}</h1>;
     if (!movie) return <h1>No movie data available. Please select a movie.</h1>;

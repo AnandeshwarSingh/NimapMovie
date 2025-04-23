@@ -1,5 +1,6 @@
 import React ,{ useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Pagination from "./Pagination";
 
 function Search(props)
 {
@@ -58,7 +59,7 @@ function Search(props)
                 <div className="row text-center ">
                         {movies.map((movie) => (
                             <div className="col-4 w-auto m-auto g-5 my-2" key={movie.id}>
-                                <Link className="nav-link" to="/MovieDetail" onClick={()=>handleClick({ id: movie.id})}>
+                                <Link className="nav-link" to={`/MovieDetail/${movie.id}`} onClick={()=>handleClick({ id: movie.id})}>
                                     <div className="card">
                                         <img
                                             src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -74,18 +75,15 @@ function Search(props)
                             </div>
                         ))}
                 </div>
-                <div className="container my-4">
-                    <nav aria-label="Page navigation example">
-                        <ul className="pagination justify-content-center m-auto text-center">
-                            <li className="page-item" onClick={handlePrev}><a className="page-link bg-dark" href="#" >Previous</a></li>
-                            <li className="page-item" onClick={()=>setCount(1)}><a className="page-link bg-dark" href="#" >1</a></li>
-                            <li className="page-item" onClick={()=>setCount(2)}><a className="page-link bg-dark" href="#" >2</a></li>
-                            <li className="page-item" onClick={()=>setCount(3)}><a className="page-link bg-dark" href="#" >3</a></li>
-                            <li className="page-item" onClick={handleNext}><a className="page-link bg-dark" href="#" >Page: {count}  / {totalPages}</a></li>
-                            <li className="page-item" onClick={handleNext}><a className="page-link bg-dark" href="#" >Next</a></li>
-                        </ul>
-                    </nav>
-                </div>
+                {!load && (
+        <Pagination
+          count={count}
+          totalPages={totalPages}
+          onPrev={() => count > 1 && setCount(count - 1)}
+          onNext={() => count < totalPages && setCount(count + 1)}
+          onPageSelect={(page) => setCount(page)}
+        />
+      )}
             </div>
         </>
     );
